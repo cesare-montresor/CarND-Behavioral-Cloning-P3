@@ -32,6 +32,28 @@ The goals / steps of this project are the following:
 ---
 ###Files Submitted & Code Quality
 
+#### Notes
+
+###### Before starting 
+* augumenting the data:
+  * to equally represent the various road condition (bridge, dirt on the border, red and white stripes, etc). double frames by avg ?
+  * double the information by flipping (left-right) the images, swapping side images, reverse steering (*-1?)
+  * tamper with the scene ? limit horizon ?? probably not (maybe blur (resize ?), maybe blur the top half of the image more... )
+    * finding a "ROI" to place before/after ? NN ? cs231n? bho
+  * resize
+  * colorspace ?
+  * tamper with the simulator to make easier to generate clean data (rail ?)
+  
+* network architecture
+  * 3 GoogLeNet for the 3 images (left, center, right) -> fc result ?
+    
+* writeup
+  * write as I go
+
+###### Start
+
+
+
 ####1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:

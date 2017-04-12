@@ -95,10 +95,14 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
+    model_path = './models/'
+    model_name = 'first-00-0.55.h5'
+
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
         type=str,
+        default=model_path+model_name,
         help='Path to model h5 file. Model should be on the same path.'
     )
     parser.add_argument(
@@ -109,6 +113,7 @@ if __name__ == '__main__':
         help='Path to image folder. This is where the images from the run will be saved.'
     )
     args = parser.parse_args()
+
 
     # check that model Keras version is same as local Keras version
     f = h5py.File(args.model, mode='r')
