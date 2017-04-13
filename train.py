@@ -1,35 +1,48 @@
 import dataset as ds
-import models
-from keras.models import Sequential
+import model as md
+from keras.models import Sequential, Model
 from keras.layers import Input, Flatten, Dense, Lambda, Conv2D, MaxPool2D, Cropping2D
 from keras.callbacks import ModelCheckpoint
 from keras.applications import InceptionV3
+from pprint import PrettyPrinter as pp
 
-batch_size = 32
+
+
+epochs = 30
+batch_size = 1
 split_valid=0.2
-image_shape=(160,320,3)
+
+name, path = md.latestModel()
+load_model = path
 
 modelpath = './models/'
-modelname = 'first'
+modelname = ds.standardModelName(name)
 datasetNames = ds.recordingList()
 datasetName = datasetNames[0]
 #ds.recordingToDataset_allCenter(datasetName)
-model_name = 'InceptionV3_features'
+model_name = 'BN_INCEP' #'InceptionV3_features'
 
-ds.datasetToBottleneck_InceptionV3(datasetName,image_shape, limit=2, model_name = 'InceptionV3_features', reindex_only=False)
-gen_train, gen_valid, info = ds.loadBottleneckGenerators(datasetName, model_name, batch_size=batch_size)
-print(info)
+gen_train, gen_valid, info = ds.loadDatasetGenerators(datasetName, batch_size=batch_size)
 
-model = Sequential()
-model.add(Dense(1024, input_shape=info['input_shape']))
-model.add(Dense(512))
-model.add(Dense(1))
+
+#pp.pprint(info)
+features = InceptionV3(include_top=False,input_shape=info['input_shape'], pooling='max')
+x = Dense(128, activation="relu")(features.output)
+x = Dense(1)(x)
+model = Model(features.input, x, name="test")
+
+'''
+if load_model is not None:
+    print('Loading weights', load_model)
+    model.load_weights(load_model)
+''';
+
 
 filepath= modelpath + modelname + "-{epoch:02d}-{val_acc:.2f}.h5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
 model.compile(loss="mse", optimizer="adam", metrics=['accuracy'])
-model.fit_generator(gen_train, info['n_train_batch'], epochs=5, validation_data=gen_valid, validation_steps=info['n_valid_batch'],callbacks=callbacks_list)
+model.fit_generator(gen_train, info['n_train_batch'], epochs=epochs, validation_data=gen_valid, validation_steps=info['n_valid_batch'],callbacks=callbacks_list)
 
 #model.save(modelpath+modelname+'.h5')

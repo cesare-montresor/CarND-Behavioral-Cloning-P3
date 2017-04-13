@@ -65,13 +65,13 @@ def datasetToBottleneck(name, model, model_name=None , batch_size=default_batch_
 
     with open(dst_path+model_name+'/'+trainfile, 'wb') as picklefile:
         pickle.dump(train_data, picklefile)
-        print(train_data)
+        #print(train_data)
     return model_name
 
 
 
 def recordingToDataset_allCenter(name,correction=0.1,force=False,limit=None):  #performs center
-    print('name',name)
+    #print('name',name)
     src_path = recording_path + name + '/'
     dst_path = datasets_path + name + '/'
     train_path = dst_path+trainfile
@@ -179,7 +179,7 @@ def loadDatasetGenerators(name, split=0.2 , batch_size=default_batch_size):  # r
         'n_dataset':len(dataset),
         'input_shape':sample
     }
-    print(dataset_train)
+    #print(dataset_train)
 
     return datasetGenerator(dataset_train, batch_size), datasetGenerator(dataset_valid, batch_size), info
 
