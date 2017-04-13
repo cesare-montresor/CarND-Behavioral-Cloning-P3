@@ -96,11 +96,12 @@ def send_control(steering_angle, throttle):
 
 if __name__ == '__main__':
     model_path = './models/'
-    model_name = 'first-00-0.55.h5'
+    model_name = 'inception-retrain-0-0.18.h5'
 
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
+        nargs='?',
         type=str,
         default=model_path+model_name,
         help='Path to model h5 file. Model should be on the same path.'

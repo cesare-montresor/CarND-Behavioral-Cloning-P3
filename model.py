@@ -1,5 +1,5 @@
 from keras.models import Sequential, Model
-from keras.layers import Input, Flatten, Dense, Lambda, Conv2D, MaxPool2D, Cropping2D
+from keras.layers import Input, Flatten, Dense, Lambda, Conv2D, MaxPool2D, Cropping2D, Dropout
 from keras.callbacks import ModelCheckpoint
 from keras.applications import InceptionV3
 import glob, os
@@ -32,12 +32,18 @@ def LeNet(image_shape):
     model.add(Dense(120, activation="relu"))
     model.add(Dense(84, activation="relu"))
     model.add(Dense(1))
+    return model
 
-def InceptionV3_retrain(input_shape, name=None):
+def InceptionV3_retrain(input_shape, name=None, load_weight=None):
     features = InceptionV3(include_top=False,input_shape=input_shape, pooling='max')
     x = Dense(128, activation="relu")(features.output)
     x = Dense(1)(x)
     model = Model(features.input, x, name=name)
+    if load_weight is not None and os.path.isfile(load_weight):
+        print('Loading weights', load_weight)
+        model.load_weights(load_weight)
+    else:
+        print('Loading weights failed', load_weight)
     return model
 
 def InceptionV3_bottlenecks(input_shape):
@@ -46,4 +52,55 @@ def InceptionV3_bottlenecks(input_shape):
     model.add(Dense(512))
     model.add(Dense(256))
     model.add(Dense(1))
+    return model
+
+def nvidia_driving_team(input_shape,name="nvidia_v1",load_weight=None):
+    model = Sequential()
+    model.add(Lambda(lambda x: (x/255)-0.5,input_shape=input_shape))  #normalization layer
+    model.add(Cropping2D( cropping=((70,25),(0,0)) ))
+    model.add(Conv2D(24, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
+    model.add(Conv2D(48, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
+    model.add(Conv2D(72, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
+    model.add(Conv2D(96, kernel_size=(3, 3), activation="relu") )
+    model.add(Conv2D(120, kernel_size=(3, 3), activation="relu") )
+    model.add(Flatten())
+    model.add(Dense(100))
+    model.add(Dense(50))
+    model.add(Dense(10))
+    model.add(Dense(1))
+    model.name = name
+
+    if load_weight is not None and os.path.isfile(load_weight):
+        print('Loading weights', load_weight)
+        model.load_weights(load_weight)
+    else:
+        print('Loading weights failed', load_weight)
+
+    return model
+
+
+def old_friend(input_shape,name="nvidia_v1",load_weight=None):
+    model = Sequential()
+    model.add(Lambda(lambda x: (x / 255) - 0.5, input_shape=input_shape))  # normalization layer
+    model.add(Cropping2D(cropping=((70, 25), (0, 0))))
+    model.add(Conv2D(10, kernel_size=(3, 3), activation="relu" ))
+    model.add(MaxPool2D())
+    model.add(Conv2D(20, kernel_size=(3, 3), activation="relu"))
+    model.add(MaxPool2D())
+    model.add(Conv2D(40, kernel_size=(3, 3), activation="relu", padding="VALID"))
+    model.add(Conv2D(60, kernel_size=(3, 3), activation="relu", padding="VALID"))
+    model.add(MaxPool2D())
+    model.add(Conv2D(80, kernel_size=(3, 3), activation="relu", padding="VALID"))
+    model.add(Flatten())
+    model.add(Dense(1000))
+    model.add(Dropout(0.6))
+    model.add(Dense(600))
+    model.add(Dropout(0.6))
+    model.add(Dense(300))
+    model.add(Dropout(0.6))
+    model.add(Dense(100))
+    model.add(Dropout(0.6))
+    model.add(Dense(1))
+    model.name = name
+
     return model
