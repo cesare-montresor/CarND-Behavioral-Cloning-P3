@@ -6,8 +6,8 @@ from keras.callbacks import ModelCheckpoint
 from keras.applications import InceptionV3
 from pprint import PrettyPrinter as pp
 
-epochs = 30
-batch_size = 32
+epochs = 5
+batch_size = 1
 split_valid=0.2
 
 name = 'nvidia_v1'
@@ -15,14 +15,17 @@ name = 'nvidia_v1'
 modelpath = './models/'
 modelname = ds.standardModelName(name)
 datasetNames = ds.recordingList()
-datasetName = datasetNames[0]
-#ds.recordingToDataset_allCenter(datasetName)
+datasetName = 'try'
+
+ds.recordingToDataset_allCenter(datasetName)
+print('done!')
+
 model_name = 'BN_INCEP' #'InceptionV3_features'
 
 gen_train, gen_valid, info = ds.loadDatasetGenerators(datasetName, batch_size=batch_size)
 
-load_weight = './models/inception-retrain-0-0.18.h5'
-model = md.nvidia_driving_team(input_shape=info['input_shape'])
+#load_weight = './models/nvidia_v1-0-0.19.h5'
+model = md.nvidia_driving_team(input_shape=info['input_shape'])  #, load_weight=load_weight)
 
 filepath= modelpath + modelname + "-{epoch:02d}-{val_acc:.2f}.h5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')

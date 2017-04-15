@@ -8,6 +8,7 @@ from sklearn.utils import shuffle
 from keras.applications import InceptionV3
 import h5py, pickle
 import datetime
+import json
 
 cvsname = 'driving_log.csv'
 trainfile = 'train.p'
@@ -88,9 +89,13 @@ def recordingToDataset_allCenter(name,correction=0.1,force=False,limit=None):  #
         csvreader = csv.reader(csvfile)
         for line in csvreader:
             center_path, left_path, right_path, steering, throttle, brake, speed = line
+
             center_path = center_path.strip()
-            left_path = left_path.strip()
-            right_path = right_path.strip()
+            left_path = left_path.split("|")
+            left_path = list(map(lambda x: x.strip(), left_path))     # left_path = left_path.strip()
+            right_path = right_path.split("|")
+            right_path = list(map(lambda x: x.strip(), right_path))   # right_path = right_path.strip()
+
             steering = float(steering)
             throttle = float(throttle)
             brake = float(brake)
@@ -101,33 +106,51 @@ def recordingToDataset_allCenter(name,correction=0.1,force=False,limit=None):  #
             right_name       = right_path
 
             center_img = cv2.imread(src_path + center_name)
-            left_img   = cv2.imread(src_path + left_name)
-            right_img  = cv2.imread(src_path + right_name)
+            left_img = list(map(lambda x: cv2.imread(src_path + x), left_name))  # left_img   = cv2.imread(src_path + left_name)
+            right_img = list(map(lambda x: cv2.imread(src_path + x), right_name))  # right_img  = cv2.imread(src_path + right_name)
 
             copyfile(src_path + center_name, dst_path + center_name)
-            copyfile(src_path + left_name, dst_path + left_name)
-            copyfile(src_path + right_name, dst_path + right_name)
+            list(map(lambda x: copyfile(src_path + x, dst_path + x), left_name))   # copyfile(src_path + left_name, dst_path + left_name)
+            list(map(lambda x: copyfile(src_path + x, dst_path + x), right_name))  # copyfile(src_path + right_name, dst_path + right_name)
 
             center_name_flip = center_path.split('.')[0] + '_flip.jpg'
-            left_name_flip = left_path.split('.')[0] + '_flip.jpg'
-            right_name_flip = right_path.split('.')[0] + '_flip.jpg'
+            left_name_flip = list(map(lambda x: x.split('.')[0] + '_flip.jpg', left_name))      #left_name_flip = left_path.split('.')[0] + '_flip.jpg'
+            right_name_flip = list(map(lambda x: x.split('.')[0] + '_flip.jpg', right_path))  #right_name_flip = right_path.split('.')[0] + '_flip.jpg'
 
             center_img_flip = np.fliplr(center_img)
-            left_img_flip   = np.fliplr(left_img)
-            right_img_flip  = np.fliplr(right_img)
+            left_img_flip = list(map(lambda x: np.fliplr(x), left_img))     #left_img_flip   = np.fliplr(left_img)
+            right_img_flip = list(map(lambda x: np.fliplr(x), right_img))   # right_img_flip  = np.fliplr(right_img)
 
             cv2.imwrite(dst_path+center_name_flip, center_img_flip)
-            cv2.imwrite(dst_path+left_name_flip, left_img_flip)
-            cv2.imwrite(dst_path+right_name_flip, right_img_flip)
+            list(map(lambda x,y: cv2.imwrite(dst_path + x, y),left_name_flip, left_img_flip)) #cv2.imwrite(dst_path+left_name_flip, left_img_flip)
+            list(map(lambda x, y: cv2.imwrite(dst_path + x, y), right_name_flip, right_img_flip))  #cv2.imwrite(dst_path+right_name_flip, right_img_flip)
 
+            '''
             image_paths = (
                 dst_path + center_name,
                 dst_path + left_name,
                 dst_path + right_name,
-                dst_path + center_name_flip,
+
                 dst_path + left_name_flip,
                 dst_path + right_name_flip
             )
+            ''';
+
+            image_paths = [
+                dst_path + center_name,
+                dst_path + center_name_flip
+            ]
+            left_image_path = list(map(lambda x: dst_path + x, left_name))
+            right_image_path = list(map(lambda x: dst_path + x, right_name))
+            image_paths.extend(left_image_path)
+            image_paths.extend(right_image_path)
+
+            left_image_flip_path = list(map(lambda x: dst_path + x, left_name_flip))
+            right_image_flip_path = list(map(lambda x: dst_path + x, right_name_flip))
+            image_paths.extend(left_image_flip_path)
+            image_paths.extend(right_image_flip_path)
+
+            '''
             stearings = (
                 steering,
                 steering + correction,
@@ -136,6 +159,22 @@ def recordingToDataset_allCenter(name,correction=0.1,force=False,limit=None):  #
                 -(steering + correction),
                 -(steering - correction)
             )
+            ''';
+
+            stearings = [
+                steering,
+                -steering
+            ]
+            left_steering_correction = list(map(lambda x: steering + (correction + (x/10)), range(len(left_image_path))))
+            right_steering_correction = list(map(lambda x: steering - (correction + (x/10)), range(len(right_image_path))))
+            stearings.extend(left_steering_correction)
+            stearings.extend(right_steering_correction)
+
+            left_steering_correction_flip = list(map(lambda x: -x, left_steering_correction))
+            right_steering_correction_flip = list(map(lambda x: -x, right_steering_correction))
+            stearings.extend(left_steering_correction_flip)
+            stearings.extend(right_steering_correction_flip)
+
 
             for i in range(len(image_paths)):
                 train_data.append([
@@ -143,6 +182,9 @@ def recordingToDataset_allCenter(name,correction=0.1,force=False,limit=None):  #
                     stearings[i],
                 ])
 
+
+            if cnt % 100 == 0:
+                print('Parsed ',cnt)
             cnt += 1
             if limit is not None and cnt > limit:
                 break
@@ -150,6 +192,10 @@ def recordingToDataset_allCenter(name,correction=0.1,force=False,limit=None):  #
 
         with open(train_path,'wb') as picklefile:
             pickle.dump(train_data,picklefile)
+
+        with open(train_path+'.json','w') as jsonfile:
+            json.dump(train_data,jsonfile)
+
     return
 
 
@@ -179,7 +225,7 @@ def loadDatasetGenerators(name, split=0.2 , batch_size=default_batch_size):  # r
         'n_dataset':len(dataset),
         'input_shape':sample
     }
-    #print(dataset_train)
+    print(dataset_train)
 
     return datasetGenerator(dataset_train, batch_size), datasetGenerator(dataset_valid, batch_size), info
 

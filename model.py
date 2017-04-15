@@ -56,8 +56,8 @@ def InceptionV3_bottlenecks(input_shape):
 
 def nvidia_driving_team(input_shape,name="nvidia_v1",load_weight=None):
     model = Sequential()
-    model.add(Lambda(lambda x: (x/255)-0.5,input_shape=input_shape))  #normalization layer
-    model.add(Cropping2D( cropping=((70,25),(0,0)) ))
+    model.add(Cropping2D( cropping=((70,25),(0,0)),input_shape=input_shape ))
+    model.add(Lambda(lambda x: (x / 255) - 0.5))  # normalization layer
     model.add(Conv2D(24, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
     model.add(Conv2D(48, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
     model.add(Conv2D(72, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
@@ -79,10 +79,10 @@ def nvidia_driving_team(input_shape,name="nvidia_v1",load_weight=None):
     return model
 
 
-def old_friend(input_shape,name="nvidia_v1",load_weight=None):
+def old_friend(input_shape,name="old_friend_v1",load_weight=None):
     model = Sequential()
-    model.add(Lambda(lambda x: (x / 255) - 0.5, input_shape=input_shape))  # normalization layer
-    model.add(Cropping2D(cropping=((70, 25), (0, 0))))
+    model.add(Cropping2D(cropping=((70, 25), (0, 0)), input_shape=input_shape))
+    model.add(Lambda(lambda x: (x / 255) - 0.5))  # normalization layer
     model.add(Conv2D(10, kernel_size=(3, 3), activation="relu" ))
     model.add(MaxPool2D())
     model.add(Conv2D(20, kernel_size=(3, 3), activation="relu"))
