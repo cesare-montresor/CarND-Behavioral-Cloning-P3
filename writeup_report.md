@@ -1,4 +1,4 @@
-#**Behavioral Cloning** 
+# **Behavioral Cloning** 
 
 **Behavioral Cloning Project**
 
@@ -24,7 +24,7 @@ The goals / steps of this project are the following:
 
 ---
 
-####1. Submission includes all required files and can be used to run the simulator in autonomous mode
+#### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
 * `train.py`  
@@ -54,7 +54,7 @@ Models folder
 Videos folder
 
 
-####2. Submission includes functional code
+#### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
 
 The script by default loads './models/final_model.h5'
@@ -69,7 +69,7 @@ Buy any other model can still be used:
 python drive.py ./models/any_other_model.h5
 ```
 
-####3. Submission code is usable and readable
+#### 3. Submission code is usable and readable
 
 The train.py file contains the code for training and saving the convolution neural network.
 The file, if needed, parse a recordings folder and consolidate it into a new dataset having the same name.
@@ -79,15 +79,15 @@ The model is then trained.
 Two callbacks have been added, one for saving a chackpoint after every epoch (in case of improvments) and
 a second one to stop the training in case in the last N epochs there have been no noticable imporvments in the val_loss
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. An appropriate model architecture has been employed
+#### 1. An appropriate model architecture has been employed
 
 After testing several models like LeNet, Inception (FE, retrin), the model from P2 and the nvidia one.  
 I realized that for the given task and with a sufficient amount of data I would a probably managed to use any and have a good result.  
 I ended up choosing a modified version of the nvidia network with Relu as non-linear activation and I added dropout for regularization purposes and prevent overfitting.   
 
-####2. Attempts to reduce overfitting in the model
+#### 2. Attempts to reduce overfitting in the model
 
 The model was trained using separate training a validation sets, using a 0.2 split.  
 The val_loss was monitored and a checkpoints is saved after every epoch in case of improvements.  
@@ -95,13 +95,13 @@ The model was tested by running it through the simulator and ensuring that the v
 As mention above I added 2 dropout layer in between the FC to help prevent overfitting.
 The dataset have been augmented (see below)
 
-####3. Model parameter tuning
+#### 3. Model parameter tuning
 
 In the beginning I choose adam as optimizer by default, but later I had so issue training my model (...I thought, later I found out I was looking at the wrong metrics)   
 so, among other attempts, I've tried to change the optimization algorithms I noticed that sgd was converging much faster.   
 I wish I knew the numerical reasons behind it but unfortunatly I didn't had the proper time to have an in-depth look and compare the various optimizers.  
 
-####4. Appropriate training data
+#### 4. Appropriate training data
 
 Training data was chosen to keep the vehicle driving on the road. 
 I used a combination of center lane driving, recovering from the left and right sides of the road. 
@@ -142,15 +142,15 @@ https://github.com/cesare-montresor/self-driving-car-sim
 
 _I hope you don't mind I tampered with the simulator._
 
-###Model Architecture and Training Strategy
+### Model Architecture and Training Strategy
 
-####1. Solution Design Approach
+#### 1. Solution Design Approach
 
 I started by trying out on feature extraction and retrain on InceptionV3 and it was way to long. So I've tried the model
 I've used in the P2 but with bigger images it turn out to be much bigger and harder to train but not much more effective than
 than LeNet or Nvidia, so after few attempts I've seattle for a slightly modified version of the nvidia NN with dropout.  
 
-####2. Final Model Architecture
+#### 2. Final Model Architecture
 
 The final model architecture (23:model.py) is pretty much like it appears in the slides but with added 0.5 of dropout in between the FC layers, here is an extract:
 
@@ -193,7 +193,7 @@ plot_model(model, to_file='final_model.png')
 
 ![final_model]
 
-####3. Creation of the Training Set & Training Process
+#### 3. Creation of the Training Set & Training Process
 
 I create a few datasets using the technique of waypoint-driving described above, then using is possible `loadDatasetGenerators(['ds1','ds2'])` to load generators producind data from multiple datasets at once.  
 In the beginning I started by using multiple side cameras and later ditched the idea and I used a simple left,center,right. 
