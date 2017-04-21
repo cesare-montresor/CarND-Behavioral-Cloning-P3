@@ -15,12 +15,17 @@ from io import BytesIO
 from keras.models import load_model
 import h5py
 from keras import __version__ as keras_version
+import dataset as ds
 
 sio = socketio.Server()
 app = Flask(__name__)
 model = None
 prev_image_array = None
 
+
+default_model = './models/final_model.h5'
+default_videos = './videos/'
+set_speed = 15
 
 class SimplePIController:
     def __init__(self, Kp, Ki):
@@ -37,14 +42,13 @@ class SimplePIController:
         # proportional error
         self.error = self.set_point - measurement
 
-        # integral error
+        # integral errordw
         self.integral += self.error
 
         return self.Kp * self.error + self.Ki * self.integral
 
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9
 controller.set_desired(set_speed)
 
 
@@ -95,22 +99,19 @@ def send_control(steering_angle, throttle):
 
 
 if __name__ == '__main__':
-    model_path = './models/'
-    model_name = 'inception-retrain-0-0.18.h5'
-
     parser = argparse.ArgumentParser(description='Remote Driving')
     parser.add_argument(
         'model',
         nargs='?',
         type=str,
-        default=model_path+model_name,
+        default=default_model,
         help='Path to model h5 file. Model should be on the same path.'
     )
     parser.add_argument(
         'image_folder',
         type=str,
         nargs='?',
-        default='',
+        default=default_videos,
         help='Path to image folder. This is where the images from the run will be saved.'
     )
     args = parser.parse_args()
@@ -122,12 +123,14 @@ if __name__ == '__main__':
     keras_version = str(keras_version).encode('utf8')
 
     if model_version != keras_version:
-        print('You are using Keras version ', keras_version,
-              ', but the model was built using ', model_version)
+        print('You are using Keras version ', keras_version, ', but the model was built using ', model_version)
 
     model = load_model(args.model)
 
     if args.image_folder != '':
+        timestamp = datetime.utcnow().strftime('%Y%m%d-%H%M%S')
+        args.image_folder += timestamp+'/'
+
         print("Creating image folder at {}".format(args.image_folder))
         if not os.path.exists(args.image_folder):
             os.makedirs(args.image_folder)
