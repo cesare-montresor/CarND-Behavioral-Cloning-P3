@@ -20,7 +20,7 @@ datasets_path = './datasets/'
 default_batch_size = 32
 
 def standardModelName(name='model'):
-    name += +'_'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+    name += '_'+datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
     return name
 
 def datasetToBottleneck_InceptionV3(name, image_shape, batch_size=default_batch_size, force=False, model_name='InceptionV3_features', limit=None,reindex_only=False):
