@@ -27,17 +27,17 @@ The goals / steps of this project are the following:
 ####1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* `train.py`  
+* `model.py`  
 Is the main pipeline, from recordings to a fully trained model
 * `dataset.py`  
 Contains all the code necessary to deal with recordings and datasets  
-* `model.py`  
+* `modellist.py`  
 Contains the models used and tested
 * `drive.py`  
 For driving the car in autonomous mode 
 * `writeup_report.md`  
 Summarizing the results  
-* `models/final_model.h5`  
+* `model.h5`  
 Containing a trained convolution neural network
 * `video.mp4`  
 [Video of the recorded lap](video.mp4)

@@ -1,114 +1,49 @@
-from keras.models import Sequential, Model
-from keras.layers import Flatten, Dense, Lambda, Conv2D, MaxPool2D, Cropping2D, Dropout
-from keras.applications import InceptionV3
-import glob, os
+import dataset as ds
+import modellist as md
+from keras.callbacks import ModelCheckpoint, EarlyStopping
+import matplotlib.pyplot as plt
 
-models_path = './models/'
+epochs = 30
+batch_size = 1
+split_valid=0.2
 
+datasetName = 'lake_lap_final' # jungle, lake, try, lake_lap_clean, lake_lap_final
+modelname = ds.standardModelName(datasetName+'_nvidia')
 
-def latestModel():
-    max = 0
-    latest_path = None
-    model_files = glob.glob(models_path+'*.h5')
-    for model_file in model_files:
-        time = os.path.getmtime(model_file)
-        if time > max:
-            latest_path = model_file
-            max = time
-    filename = latest_path.split("/")[-1]
-    model_name = filename.split("-")[0]
-    return model_name, latest_path
+## Prepare dataset
+# force=True rebuilds the dataset
+# reindex_only=True rebuild only the index file (ex: change steer correction formula, paths, etc)
+ds.recordingToDataset_allCenter(datasetName) # parse a recording into a dataset (if not done yet)
 
+#load dataset generator and metrics
+gen_train, gen_valid, info = ds.loadDatasetGenerators(datasetName, batch_size=batch_size )
+# print(info)
 
-def nvidia_driving_team(input_shape,name="nvidia_v1",load_weight=None):
-    model = Sequential()
-    model.add(Cropping2D( cropping=((70,25),(0,0)),input_shape=input_shape ))
-    model.add(Lambda(lambda x: (x / 255) - 0.5))  # normalization layer
-    model.add(Conv2D(24, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
-    model.add(Conv2D(48, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
-    model.add(Conv2D(72, kernel_size=(5, 5), activation="relu", strides=(2,2) ))
-    model.add(Conv2D(96, kernel_size=(3, 3), activation="relu") )
-    model.add(Conv2D(120, kernel_size=(3, 3), activation="relu") )
-    model.add(Flatten())
-    model.add(Dense(200))
-    model.add(Dropout(0.5))
-    model.add(Dense(100))
-    model.add(Dropout(0.5))
-    model.add(Dense(10))
-    model.add(Dense(1))
-    model.name = name
+# create the model a eventually preload the weights (set to None or remove to disable)
+load_weight = md.models_path + 'lake_lap_final_nvidia_20170420-162101-00-0.00416.h5'
+model = md.nvidia_driving_team(input_shape=info['input_shape'], load_weight=load_weight)
 
-    if load_weight is not None and os.path.isfile(load_weight):
-        print('Loading weights', load_weight)
-        model.load_weights(load_weight)
-    else:
-        print('Loading weights failed', load_weight)
+# Intermediate model filename template
+filepath= md.models_path + modelname + "-{epoch:02d}-{val_loss:.5f}.h5"
+# save model after every epoc, only if improved the val_loss.
+# very handy (with a proper environment (2 GPUs anywhere) you can test your model while it still train)
+checkpoint = ModelCheckpoint(filepath, monitor='val_loss', verbose=1, save_best_only=True)
+# detect stop in gain on val_loss between epocs and terminate early, avoiding unnecessary computation cycles.
+earlystopping = EarlyStopping(monitor='val_loss', min_delta=0.0001, patience=5, verbose=1)
+callbacks_list = [checkpoint, earlystopping]
 
-    return model
+model.compile(loss="mse", optimizer="sgd")
+history_object = model.fit_generator(gen_train, info['n_train_batch'],verbose=1, epochs=epochs, validation_data=gen_valid, validation_steps=info['n_valid_batch'], callbacks=callbacks_list)
 
+### print the keys contained in the history object
+print(history_object.history.keys())
 
+### plot the training and validation loss for each epoch
+plt.plot(history_object.history['loss'])
+plt.plot(history_object.history['val_loss'])
+plt.title('model mean squared error loss')
+plt.ylabel('mean squared error loss')
+plt.xlabel('epoch')
+plt.legend(['training set', 'validation set'], loc='upper right')
+plt.show()
 
-
-#### OTHER MODELS TESTED ####
-
-def LeNet(input_shape):
-    model = Sequential()
-    model.add(Cropping2D(cropping=((70, 25), (0, 0)), input_shape=input_shape))
-    model.add(Lambda(lambda x: (x / 255.0) - 0.5))
-    model.add(Conv2D(6, kernel_size=(5, 5), padding="same", activation="relu"))
-    model.add(MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-    model.add(Conv2D(16, kernel_size=(5, 5), padding="same", activation="relu"))
-    model.add(MaxPool2D(pool_size=(2, 2), strides=(2, 2)))
-    model.add(Flatten())
-    model.add(Dense(120, activation="relu"))
-    model.add(Dense(84, activation="relu"))
-    model.add(Dense(1))
-    return model
-
-def InceptionV3_retrain(input_shape, name='incept_retrain', load_weight=None):
-    features = InceptionV3(include_top=False,input_shape=input_shape, pooling='max')
-    x = Dense(128, activation="relu")(features.output)
-    x = Dense(1)(x)
-    model = Model(features.input, x, name=name)
-    if load_weight is not None and os.path.isfile(load_weight):
-        print('Loading weights', load_weight)
-        model.load_weights(load_weight)
-    else:
-        print('Loading weights failed', load_weight)
-    return model
-
-def InceptionV3_bottlenecks(input_shape):
-    model = Sequential()
-    model.add(Flatten(input_shape=input_shape) )
-    model.add(Dense(512))
-    model.add(Dense(256))
-    model.add(Dense(1))
-    return model
-
-
-
-def model_P2(input_shape,name="old_friend_v1",load_weight=None):
-    model = Sequential()
-    model.add(Cropping2D(cropping=((70, 25), (0, 0)), input_shape=input_shape))
-    model.add(Lambda(lambda x: (x / 255) - 0.5))  # normalization layer
-    model.add(Conv2D(10, kernel_size=(3, 3), activation="relu" ))
-    model.add(MaxPool2D())
-    model.add(Conv2D(20, kernel_size=(3, 3), activation="relu"))
-    model.add(MaxPool2D())
-    model.add(Conv2D(40, kernel_size=(3, 3), activation="relu", padding="VALID"))
-    model.add(Conv2D(60, kernel_size=(3, 3), activation="relu", padding="VALID"))
-    model.add(MaxPool2D())
-    model.add(Conv2D(80, kernel_size=(3, 3), activation="relu", padding="VALID"))
-    model.add(Flatten())
-    model.add(Dense(600))
-    model.add(Dropout(0.6))
-    model.add(Dense(400))
-    model.add(Dropout(0.6))
-    model.add(Dense(200))
-    model.add(Dropout(0.6))
-    model.add(Dense(100))
-    model.add(Dropout(0.6))
-    model.add(Dense(1))
-    model.name = name
-
-    return model
