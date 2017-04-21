@@ -18,6 +18,7 @@ The goals / steps of this project are the following:
 [augment]: ./writeup_images/augment.jpg
 [shadows]: ./writeup_images/shadows.jpg
 [video]: ./writeup_images/video_preview.png
+[steering_distrib]: ./writeup_images/steering_distrib.png
 
 ## Rubric Points
 ###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
@@ -201,6 +202,9 @@ Focusing instead on augmenting the dataset with the horizontal shift to compensa
 I thought of adding occlusions and shadows particularly while I was placing the waypoint for the jungle track from birdeye view, I could really appreciate how many different lighting conditions, shadows and sharp changes in brightness there are.  
 ![shadows]
 
+One thing that I didn't had the time to fix is the sampling in the generators based on the occurence, to help fixing the left-steering tendencies of my algorithm, to allow it to be trained for longer epochs.
+![steering_distrib]
+
 #### Personal considerations
 
 I wish I had more time to try out other variants especially, the seering correction for left and right images (with multiple side cameras).
@@ -209,3 +213,4 @@ One of the ideas I would like to try the most would be to augment the Y to predi
 the hope would be to help the model to make sense of the image using more relevant part of information as now has to "work harder".
 With this project it also changed my prospective on what to feed to a NN, if before I was trying to preprocess and clenup (equalization, etc) the image, 
 now I'm starting to realize that is better instead train your model on conditions (much) worst than what you will find and it will end up generalizing much better.
+
