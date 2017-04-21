@@ -34,11 +34,15 @@ Contains all the code necessary to deal with recordings and datasets
 * `model.py`  
 Contains the models used and tested
 * `drive.py`  
-For driving the car in autonomous mode
-* `models/final_model.h5`  
-Containing a trained convolution neural network 
+For driving the car in autonomous mode 
 * `writeup_report.md`  
-Summarizing the results
+Summarizing the results  
+* `models/final_model.h5`  
+Containing a trained convolution neural network
+* `video.mp4`  
+[Video of the recorded lap](video.mp4)
+
+
 
 * `recordings/`   
 Recordings folder
@@ -196,10 +200,6 @@ In the beginning I started by using multiple side cameras and later ditched the 
 Focusing instead on augmenting the dataset with the horizontal shift to compensate my poor steering correction tecnique and how to improve it.  
 I thought of adding occlusions and shadows particularly while I was placing the waypoint for the jungle track from birdeye view, I could really appreciate how many different lighting conditions, shadows and sharp changes in brightness there are.  
 ![shadows]
-
-
-[![video]](./writeup_images/video.mp4) 
-
 
 #### Personal considerations
 
